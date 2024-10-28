@@ -1,7 +1,8 @@
 ---
 title: "pre_lab_08.Rmd"
 author: "Derek Willis"
-date: "2023-03-30"
+adapted: "Daniel Trieli"
+date: "2024-10-16"
 output: html_document
 ---
 
@@ -9,7 +10,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Chapter 26
+## Chapter 21
 
 Visualizing data is becoming a much greater part of journalism. Large news organizations are creating graphics desks that create complex visuals with data to inform the public about important events.
 
@@ -25,17 +26,16 @@ Let's revisit some data we've used in the past and turn it into charts. First, l
 
 ```{r}
 library(tidyverse)
-library(lubridate)
 ```
 
-The dataset we'll use is 911 overdose calls from Baltimore County. Let's load it.
+The dataset we'll use is voter registration data by county in Maryland from 2020 and September 2022. Let's load it.
 
 ### Task 2: Load data
 
 **Task** Run the following code to load the data. In the space below, indicate how many rows and columns it has. **Answer**
 
 ```{r}
-baltco_911_calls <- read_csv("data/baltco_911_calls.csv")
+md_voters <- read_csv("data/maryland_voters_2024_2022.csv")
 ```
 
 ## Bar charts
@@ -44,36 +44,39 @@ The first kind of chart we'll create is a simple bar chart.
 
 It's a chart designed to show differences between things -- the magnitude of one thing, compared to the next thing, and the next, and the next.
 
-So if we have thing, like a county, or a month, or a day of the week, and then a count of that group, we can make a bar chart.
+So if we have thing, like a county, or a state, or a group name, and then a count of that group, we can make a bar chart.
 
-So what does the chart of the top months with the most 911 overdose calls look like?
+So what does the chart of the top 10 maryland counties with the biggest change in unaffiliated voters from 2024 to 2022 look like?
 
-First, we'll add a month column to our dataframe using lubridate.
+First, we'll create a dataframe of those top 10, called maryland_top_counties.
 
-### Task 3: Add a month column to our 911 calls dataframe using lubridate and calculate the number of calls for each month
+### Task 3: Create a dataframe of top 10 counties for unaffiliated voter change in Maryland
 
-**Task** Run the following code to add a month column to our dataframe using lubridate and count the number of calls for each month. In the space below, explain what each step of the code below is doing in English. Note the "label=TRUE" part in the mutate statement. **Answer**
+**Task** Complete and run the following code to create a dataframe of top 10 counties with the biggest change in unaffiliated voters in Maryland. In the space below, explain what each step of the code below is doing in English. **Answer**
 
 ```{r}
-baltco_911_calls_by_month <- baltco_911_calls |>
-  mutate(month = month(date, label=TRUE)) |> 
-  group_by(month) |> 
-  summarize(total_calls = n()) |> 
-  arrange(desc(total_calls))
 
-baltco_911_calls_by_month
+md_voters <- md_voters |> 
+  mutate(UNAF_DIFF = ? - ?)
+
+maryland_top_counties <- md_voters |>
+  arrange(desc(UNAF_DIFF)) |>
+  select(County, UNAF_DIFF) |> 
+  head(10)
+
+maryland_top_counties
 ```
 
 Now let's create a bar chart using ggplot.
 
-With ggplot, the first thing we'll always do is draw a blank canvas that will contain our chart. We start with our dataframe name, and then (\|\>) we invoke the ggplot() function to make that blank canvas. All this does is make a gray box, the blank canvas that will hold our chart.
+With ggplot, the first thing we'll always do is draw a blank canvas that will contain our chart. We start with our dataframe name, and then (%\>%) we invoke the ggplot() function to make that blank canvas. All this does is make a gray box, the blank canvas that will hold our chart.
 
 ### Task 4: Create an empty ggplot container
 
 **Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot()
 ```
 
@@ -93,32 +96,32 @@ Using geom_bar() -- as opposed to geom_line() -- says we're making a bar chart.
 
 Inside of that function, the aesthetic, aes, says which columns to use in drawing the chart.
 
-We're setting the values on the x axis (horizontal) to be the abbreviation of the month. We set weight to total calls, and it uses that value to "weight" or set the height of each bar.
+We're setting the values on the x axis (horizontal) to be the name of the county. We set weight to total loans, and it uses that value to "weight" or set the height of each bar.
 
 One quirk here with ggplot.
 
-After we've invoked the ggplot() function, you'll notice we're using a + symbol. It means the same thing as \|\> -- "and then do this". It's just a quirk of ggplot() that after you invoke the ggplot() function, you use + instead of \|\>. It makes no sense to me either, just something to live with.
+After we've invoked the ggplot() function, you'll notice we're using a + symbol. It means the same thing as %\>% -- "and then do this". It's just a quirk of ggplot() that after you invoke the ggplot() function, you use + instead of %\>%. It makes no sense to me either, just something to live with.
 
 ### Task 5: Run the following code
 
 **Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot() +
-  geom_bar(aes(x=month, weight=total_calls))
+  geom_bar(aes(x=County, weight=UNAF_DIFF))
 ```
 
-This is a very basic chart. But it's hard to derive much meaning from this chart, because the months aren't ordered from highest to lowest by total_calls We can fix that by using the reorder() function to do just that:
+This is a very basic chart. But it's hard to derive much meaning from this chart, because the counties aren't ordered from highest to lowest by total_loans. We can fix that by using the reorder() function to do just that:
 
 ### Task 6: Run the following code
 
 **Task** Run the following code. Explain what you see after running the code in the space below. What has changed from the last codeblock? **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot() +
-  geom_bar(aes(x=reorder(month,total_calls), weight=total_calls))
+  geom_bar(aes(x=reorder(County,UNAF_DIFF), weight=UNAF_DIFF))
 ```
 
 This is a little more useful. But the bottom is kind of a mess, with overlapping names. We can fix that by flipping it from a vertical bar chart (also called a column chart) to a horizontal one. coord_flip() does that for you.
@@ -128,9 +131,9 @@ This is a little more useful. But the bottom is kind of a mess, with overlapping
 **Task** Run the following code. Explain what you see after running the code in the space below. What has changed from the last codeblock? **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot() +
-  geom_bar(aes(x=reorder(month,total_calls), weight=total_calls)) +
+  geom_bar(aes(x=reorder(County,UNAF_DIFF), weight=UNAF_DIFF)) +
   coord_flip()
 ```
 
@@ -147,9 +150,9 @@ It's kind of like applying CSS to html. Here I'm changing the theme slightly to 
 **Task** Run the following code. Explain what you see after running the code in the space below. What has changed from the last codeblock? **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot() +
-  geom_bar(aes(x=reorder(month,total_calls), weight=total_calls)) +
+  geom_bar(aes(x=reorder(County,UNAF_DIFF), weight=UNAF_DIFF)) +
   coord_flip() + 
   theme_minimal()
 ```
@@ -160,7 +163,7 @@ First, you have to install and load a package that contains lots of extra themes
 
 ### Task 9: Run the following code
 
-**Task** Run the following code.
+**Task** Run the following code. **Answer**
 
 ```{r}
 install.packages('ggthemes')
@@ -174,30 +177,30 @@ And now we'll apply the economist theme from that package with theme_economist()
 **Task** Run the following code. Explain what you see after running the code in the space below. What has changed from the last version of the chart? **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot() +
-  geom_bar(aes(x=reorder(month,total_calls), weight=total_calls)) +
+  geom_bar(aes(x=reorder(County,UNAF_DIFF), weight=UNAF_DIFF)) +
   coord_flip() + 
   theme_economist()
 ```
 
-Those axis titles are kind of a mess. Let's change "count" on the x axis to "total calls" and change "reorder(month,total_calls)" to "month". And while we're at it, let's add a basic title and a source as a caption. We'll use a new function, labs(), which is short for labels.
+Those axis titles are kind of a mess. Let's change "count" on the x axis to "net change" and change "reorder(County,TOTAL_DIFF)" to "county". And while we're at it, let's add a basic title and a source as a caption. We'll use a new function, labs(), which is short for labels.
 
 ### Task 11: Run the following code
 
 **Task** Run the following code. Explain what you see after running the code in the space below. What has changed from the last codeblock? **Answer**
 
 ```{r}
-baltco_911_calls_by_month |>
+maryland_top_counties |>
   ggplot() +
-  geom_bar(aes(x=reorder(month,total_calls), weight=total_calls)) +
+  geom_bar(aes(x=reorder(County,UNAF_DIFF), weight=UNAF_DIFF)) +
   coord_flip() + 
   theme_economist() +
   labs(
-    title="More 911 Overdose Calls in Warmer Months",
-    x = "month",
-    y = "total calls",
-    caption = "source: Baltimore County"
+    title="Counties with Biggest Jumps in Unaffiliated Voters",
+    x = "net change",
+    y = "county",
+    caption = "source: Maryland State Board of Elections"
     
   )
 ```
@@ -210,20 +213,27 @@ Let's look at how to make another common chart type that will help you understan
 
 Line charts can show change over time. It works much the same as a bar chart, code wise, but instead of a weight, it uses a y.
 
-So, let's use the same Baltimore County data and generate a count of contributions for each date in our data.
+So, let's load some contribution data from WinRed, a Republican online platform for campaign contributions.
 
-### Task 12: Create a dataframe of 911 calls by date
+### Task 12: Load the WinRed contribution data and create a dataframe of contributions by date
+
+**Task** Run the following code to load the WinRed data
+
+```{r}
+md_winred <- read_rds("data/maryland_winred.rds")
+```
 
 **Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
 
 ```{r}
-baltco_911_calls_by_date <- baltco_911_calls |>
+
+md_winred_by_date <- md_winred |>
   group_by(date) |>
   summarise(
-    total_calls=n()
+    total_contributions=n()
   )
 
-baltco_911_calls_by_date 
+md_winred_by_date 
 ```
 
 And now let's make a line chart to look for patterns in this data.
@@ -235,16 +245,18 @@ We'll put the date on the x axis and total contributions on the y axis.
 **Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
 
 ```{r}
-baltco_911_calls_by_date |>
+md_winred_by_date |>
   ggplot() + 
-  geom_line(aes(x=date, y=total_calls))
+  geom_line(aes(x=date, y=total_contributions))
+
+
 ```
 
-It's not super pretty, but there's a bit of a pattern here: the number of calls fluctuates between 5 and 20 a day for most of this period, and then jumps way up at certain points during the year. In particular there are spikes in July, early October and January.
+It's not super pretty, but there's a pattern here: the number of contributions fluctuates between 400 and 800 a day for most of this period, and then jumps way up at the end of June. We've learned that the end of June is the end of a reporting period, and donors respond to deadlines.
 
 Right now, it's kind of hard to see specifics, though. When did some of those smaller spikes and troughs happen?
 
-We can't really tell. So let's modify the x axis to have one tick mark and label per month. We can do that with a function called scale_x\_date().
+We can't really tell. So let's modify the x axis to have one tick mark and label per month. We can do that with a function called scale_x_date().
 
 We'll set the date_breaks to appear for every week; if we wanted every month, we'd say date_breaks = "1 month". We can set the date to appear as month abbreviated name (%b) and day (%d).
 
@@ -253,10 +265,12 @@ We'll set the date_breaks to appear for every week; if we wanted every month, we
 **Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
 
 ```{r}
-baltco_911_calls_by_date |>
+md_winred_by_date |>
   ggplot() + 
-  geom_line(aes(x=date, y=total_calls)) + 
+  geom_line(aes(x=date, y=total_contributions)) + 
   scale_x_date(date_breaks = "1 week", date_labels = "%b %d")
+
+
 ```
 
 Those are a little hard to read, so we can turn them 45 degrees to remove the overlap using the theme() function for styling. With "axis.text.x = element_text(angle = 45, hjust=1)" we're saying, turn the date labels 45 degrees.
@@ -266,15 +280,16 @@ Those are a little hard to read, so we can turn them 45 degrees to remove the ov
 **Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
 
 ```{r}
-baltco_911_calls_by_date |>
+md_winred_by_date |>
   ggplot() + 
-  geom_line(aes(x=date, y=total_calls)) + 
+  geom_line(aes(x=date, y=total_contributions)) + 
   scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
   theme(
     axis.text.x = element_text(angle = 45,  hjust=1)
   )
+
 ```
 
-Again, this isn't as pretty as we could make it. But by charting this, we can quickly see some outliers that could guide our reporting.
+Again, this isn't as pretty as we could make it. But by charting this, we can quickly see a pattern that can help guide our reporting.
 
 We're just scratching the surface of what ggplot can do, and chart types. There's so much more you can do, so many other chart types you can make. But the basics we've shown here will get you started.
