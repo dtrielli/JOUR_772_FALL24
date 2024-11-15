@@ -25,6 +25,7 @@ To do this, we'll need a new library -- [tidytext](https://cran.r-project.org/we
 
 ```{r}
 #install.packages("tidytext")
+library(rvest)
 library(tidyverse)
 library(tidytext)
 library(janitor)
@@ -267,6 +268,7 @@ releases |>
   mutate(percent = (n/sum(n))*100) |>
   top_n(10)
 ```
+
 No more "covid 19", for one, but not a lot of changes otherwise. You'll notice that the percentages are very small; that's not irrelevant but in some cases it's the differences in patterns that's more important.
 
 There are some potential challenges to doing an analysis. For one, there are variations of words that could probably be standardized - maybe using OpenRefine - that would give us cleaner results. There might be some words among our list of stop words that actually are meaningful in this context.
